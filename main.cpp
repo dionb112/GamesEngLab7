@@ -1,13 +1,18 @@
 #include <thread>
 #include <iostream>
 #include <chrono>
+#include <mutex>
+#include <condition_variable>
 
+
+std::mutex mutex;
 
 void producer(int buffer, int p, int c) {
 	int a[5] = { 10, 20, 30, 40, 50 };
 	bool run = true;
 	while (run) {
 		while (p < 5) {
+			std::lock_guard<std::mutex> lock(mutex);
 			std::cout << "ID:" << std::this_thread::get_id() << std::endl;
 			std::this_thread::sleep_for(std::chrono::seconds(2));
 			while (!(p == c)) {
@@ -18,6 +23,7 @@ void producer(int buffer, int p, int c) {
 			p = p + 1;
 		}
 		std::cout << "prod done" << std::endl;
+		std::lock_guard<std::mutex> lock(mutex);
 		run = false;
 	}
 }
@@ -27,6 +33,7 @@ void consumer(int buffer, int p, int c) {
 	bool run = true;
 	while (run) {
 		while (c < 5) {
+			std::lock_guard<std::mutex> lock(mutex);
 			std::cout << "ID:" << std::this_thread::get_id() << std::endl;
 			std::this_thread::sleep_for(std::chrono::seconds(1));
 			while ((p <= c)) {
